@@ -78,11 +78,11 @@ description: "基础链路打通命令行管线的实现任务清单"
 
 ### Implementation for User Story 2
 
-- [ ] T013 [P] [US2] JacocoCollector：`org.jacoco.core` TCP dump（远程拉 `.exec`）、reset（重置 agent 计数）、多轮累加（合并 `.exec`），在 `src/main/java/com/codeq/coverage/JacocoCollector.java`
-- [ ] T014 [P] [US2] CoverageReportConverter：`.exec` → `coverage.xml`（Jacoco report），供 diff-cover 消费，在 `src/main/java/com/codeq/coverage/CoverageReportConverter.java`
-- [ ] T015 [US2] `dump` 子命令：从测试环境（`--jacoco-host/--jacoco-port`）拉 `.exec`，可选 `--out` 落盘，在 `src/main/java/com/codeq/CodeqCli.java`（依赖 T013）
-- [ ] T016 [US2] `reset` 子命令：重置 Jacoco agent 计数，在 `src/main/java/com/codeq/CodeqCli.java`（依赖 T013）
-- [ ] T017 [US2] `check` 接入测试环境数据源：`--jacoco-host/--jacoco-port` → JacocoCollector dump → 转 coverage.xml → 喂判定链路；支持 `--accumulate` 多轮累加，在 `src/main/java/com/codeq/CodeqCli.java`（依赖 T013、T014、T012）
+- [x] T013 [P] [US2] JacocoCollector：`org.jacoco.core` TCP dump（远程拉 `.exec`）、reset（重置 agent 计数）、多轮累加（合并 `.exec`），在 `src/main/java/com/codeq/coverage/JacocoCollector.java`
+- [x] T014 [P] [US2] CoverageReportConverter：`.exec` → `coverage.xml`（Jacoco report），供 diff-cover 消费，在 `src/main/java/com/codeq/coverage/CoverageReportConverter.java`
+- [x] T015 [US2] `dump` 子命令：从测试环境（`--jacoco-host/--jacoco-port`）拉 `.exec`，可选 `--out` 落盘，在 `src/main/java/com/codeq/CodeqCli.java`（依赖 T013）
+- [x] T016 [US2] `reset` 子命令：重置 Jacoco agent 计数，在 `src/main/java/com/codeq/CodeqCli.java`（依赖 T013）
+- [x] T017 [US2] `check` 接入测试环境数据源：`--jacoco-host/--jacoco-port` → JacocoCollector dump → 转 coverage.xml → 喂判定链路；支持 `--accumulate` 多轮累加，在 `src/main/java/com/codeq/CodeqCli.java`（依赖 T013、T014、T012）
 
 **Checkpoint**: User Stories 1 + 2 均可用——`check` 可直连测试环境采集数据
 
@@ -96,10 +96,10 @@ description: "基础链路打通命令行管线的实现任务清单"
 
 ### Implementation for User Story 3
 
-- [ ] T018 [P] [US3] ExecutionDataValidator：拒绝非测试环境 / 版本-commit 不匹配的执行数据（退出码 2），在 `src/main/java/com/codeq/coverage/ExecutionDataValidator.java`
-- [ ] T019 [P] [US3] IsolationKey：按 项目/版本/commit/任务/实例 绑定执行数据，防交叉污染，在 `src/main/java/com/codeq/model/IsolationKey.java`
-- [ ] T020 [US3] 确定性保证：判定过程确定性排序、无随机/无时钟依赖，相同输入→相同输出（增强 VerdictEngine/diff/match 输出稳定排序），在 `src/main/java/com/codeq/verdict/VerdictEngine.java` 等（依赖 T010）
-- [ ] T021 [US3] 零侵入接入文档：业务项目测试环境以 Jacoco `output=tcpserver` 挂载 agent 的接入说明（无应用代码改动），在 `docs/integration-java.md`
+- [x] T018 [P] [US3] ExecutionDataValidator：拒绝非测试环境 / 版本-commit 不匹配的执行数据（退出码 2），在 `src/main/java/com/codeq/coverage/ExecutionDataValidator.java`
+- [x] T019 [P] [US3] IsolationKey：按 项目/版本/commit/任务/实例 绑定执行数据，防交叉污染，在 `src/main/java/com/codeq/model/IsolationKey.java`
+- [x] T020 [US3] 确定性保证：判定过程确定性排序、无随机/无时钟依赖，相同输入→相同输出（增强 VerdictEngine/diff/match 输出稳定排序），在 `src/main/java/com/codeq/verdict/VerdictEngine.java` 等（依赖 T010）
+- [x] T021 [US3] 零侵入接入文档：业务项目测试环境以 Jacoco `output=tcpserver` 挂载 agent 的接入说明（无应用代码改动），在 `docs/integration-java.md`
 
 **Checkpoint**: 全部 user story 独立可用，满足确定性/隔离/零侵入
 

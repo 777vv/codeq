@@ -43,7 +43,8 @@ dist-ssr/
 .pnpm-store/
 .vite/
 .cache/
-coverage/
+# 仅忽略根目录覆盖率报告，避免误伤 Java 包 src/main/java/com/codeq/coverage/
+/coverage/
 *.local
 
 # ===== 日志 =====

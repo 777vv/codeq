@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.Collection;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +46,7 @@ public class AstMatcher {
             // 解析失败 → 该文件全部行无法匹配
             return Map.of();
         }
-        Map<Integer, MethodKey> result = new HashMap<>();
+        Map<Integer, MethodKey> result = new LinkedHashMap<>();
         for (MethodDeclaration md : cu.findAll(MethodDeclaration.class)) {
             if (md.getRange().isEmpty()) {
                 continue;

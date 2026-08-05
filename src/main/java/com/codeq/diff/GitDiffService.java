@@ -40,6 +40,15 @@ public class GitDiffService {
         return base;
     }
 
+    /** 取指定 ref（分支/HEAD/commit）的 commit 哈希（US3 版本一致性校验）。 */
+    public String headCommit(File repo, String ref) {
+        ProcessRunner.Result r = runner.run(List.of("git", "rev-parse", ref), repo, 60);
+        if (!r.ok()) {
+            throw new CodeqException(ExitCode.ERROR, "git rev-parse 失败 (" + ref + "): " + r.stderr().trim());
+        }
+        return r.stdout().trim();
+    }
+
     /** 返回 release 相对 base 的变更：file → 变更行号集合（新增/修改行；删除不计）。 */
     public Map<String, TreeSet<Integer>> changedLines(File repo, String base, String release) {
         ProcessRunner.Result r = runner.run(

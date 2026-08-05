@@ -2,6 +2,8 @@ package com.codeq;
 
 import com.codeq.cli.CheckCommand;
 import com.codeq.cli.CodeqCommand;
+import com.codeq.cli.DumpCommand;
+import com.codeq.cli.ResetCommand;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -22,9 +24,13 @@ public class CodeqCli {
         try {
             CodeqCommand root = ctx.getBean(CodeqCommand.class);
             CheckCommand check = ctx.getBean(CheckCommand.class);
+            DumpCommand dump = ctx.getBean(DumpCommand.class);
+            ResetCommand reset = ctx.getBean(ResetCommand.class);
             CommandLine cli = new CommandLine(root);
             // 用 Spring 注入的 bean（已 @Autowired），而非默认反射构造
             cli.addSubcommand("check", check);
+            cli.addSubcommand("dump", dump);
+            cli.addSubcommand("reset", reset);
             code = cli.execute(args);
         } catch (CodeqException e) {
             System.err.println("错误: " + e.getMessage());

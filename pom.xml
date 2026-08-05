@@ -50,6 +50,12 @@
             <artifactId>org.jacoco.core</artifactId>
             <version>${jacoco.version}</version>
         </dependency>
+        <!-- Jacoco 报告生成（.exec → coverage.xml，宪法 4.2） -->
+        <dependency>
+            <groupId>org.jacoco</groupId>
+            <artifactId>org.jacoco.report</artifactId>
+            <version>${jacoco.version}</version>
+        </dependency>
         <!-- JSON 解析（diff-cover 报告输入 / 报告输出） -->
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
