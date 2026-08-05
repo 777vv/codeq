@@ -31,9 +31,9 @@ description: "基础链路打通命令行管线的实现任务清单"
 
 **Purpose**: Maven 项目初始化与基本结构
 
-- [ ] T001 创建 Maven 项目 `pom.xml`：Java 21、Spring Boot 3.x parent、依赖（Picocli + picocli-spring-boot-starter、`org.jacoco.core`、JavaParser）、p3c 阿里规约插件、spring-boot-maven-plugin、UTF-8 编码，在 `pom.xml`
-- [ ] T002 [P] 创建源码包结构 `src/main/java/com/codeq/{diff,coverage,match,diffcover,verdict,report,process,model}` 与 `src/main/resources/`
-- [ ] T003 [P] CodeqCli 入口骨架：`@SpringBootApplication` + `CommandLineRunner` + Picocli 父命令（`check`/`dump`/`reset` 子命令占位），在 `src/main/java/com/codeq/CodeqCli.java`
+- [x] T001 创建 Maven 项目 `pom.xml`：Java 21、Spring Boot 3.x parent、依赖（Picocli + picocli-spring-boot-starter、`org.jacoco.core`、JavaParser）、p3c 阿里规约插件、spring-boot-maven-plugin、UTF-8 编码，在 `pom.xml`
+- [x] T002 [P] 创建源码包结构 `src/main/java/com/codeq/{diff,coverage,match,diffcover,verdict,report,process,model}` 与 `src/main/resources/`
+- [x] T003 [P] CodeqCli 入口骨架：`@SpringBootApplication` + `CommandLineRunner` + Picocli 父命令（`check`/`dump`/`reset` 子命令占位），在 `src/main/java/com/codeq/CodeqCli.java`
 
 ---
 
@@ -43,8 +43,8 @@ description: "基础链路打通命令行管线的实现任务清单"
 
 **⚠️ CRITICAL**: 所有 user story 实现须等本阶段完成
 
-- [ ] T004 [P] ProcessRunner 子进程通用封装：统一调用 git/diff-cover，处理超时、UTF-8、退出码、stdout/stderr 捕获，在 `src/main/java/com/codeq/process/ProcessRunner.java`
-- [ ] T005 [P] ExitCode 枚举与 CodeqException：统一退出码（0 合规 / 1 有风险 / 2 输入或环境错误）与异常体系，在 `src/main/java/com/codeq/ExitCode.java`、`src/main/java/com/codeq/CodeqException.java`
+- [x] T004 [P] ProcessRunner 子进程通用封装：统一调用 git/diff-cover，处理超时、UTF-8、退出码、stdout/stderr 捕获，在 `src/main/java/com/codeq/process/ProcessRunner.java`
+- [x] T005 [P] ExitCode 枚举与 CodeqException：统一退出码（0 合规 / 1 有风险 / 2 输入或环境错误）与异常体系，在 `src/main/java/com/codeq/ExitCode.java`、`src/main/java/com/codeq/CodeqException.java`
 
 **Checkpoint**: 基础设施就绪，user story 可并行展开
 
@@ -58,13 +58,13 @@ description: "基础链路打通命令行管线的实现任务清单"
 
 ### Implementation for User Story 1
 
-- [ ] T006 [P] [US1] 域类型：`Verdict`（GREEN/RED/YELLOW/PARTIAL）、`MethodKey`（className+signature+route）、`IncrementalChange`，在 `src/main/java/com/codeq/model/Verdict.java`（及 `MethodKey.java`、`IncrementalChange.java`）
-- [ ] T007 [P] [US1] GitDiffService：`ProcessBuilder` 调 `git merge-base <base> <release>` 取基线、`git diff` 取增量，产出 IncrementalChange 清单（文件/变更行/ADD|MODIFY）；无共同祖先报错，在 `src/main/java/com/codeq/diff/GitDiffService.java`
-- [ ] T008 [P] [US1] AstMatcher：JavaParser 解析变更源码，建立「类名+方法签名+路由（@RequestMapping 等）」主键，把变更行归约到方法；无法归约标记 YELLOW，在 `src/main/java/com/codeq/match/AstMatcher.java`
-- [ ] T009 [US1] DiffCoverRunner：`ProcessBuilder` 调 `diff-cover`（输入 coverage.xml + diff，输出 JSON），解析行级「是否执行」，在 `src/main/java/com/codeq/diffcover/DiffCoverRunner.java`（依赖 T004）
-- [ ] T010 [US1] VerdictEngine：结合 AstMatcher 归约 + DiffCoverRunner 行级执行 → 三色判定 + partial（附未覆盖行明细）：全执行→GREEN、从未执行→RED、无法归约→YELLOW、部分→PARTIAL，在 `src/main/java/com/codeq/verdict/VerdictEngine.java`（依赖 T008、T009）
-- [ ] T011 [US1] ReportGenerator：控制台彩色（ANSI 🟢/🔴/🟡 + 摘要统计 + 位置）+ HTML + JSON 三格式，在 `src/main/java/com/codeq/report/ReportGenerator.java`（依赖 T010）
-- [ ] T012 [US1] `check` 子命令编排：串接 diff→AST→diff-cover→verdict→report；US1 MVP 支持 `--coverage-xml <path>` 本地输入；退出码 0/1/2，在 `src/main/java/com/codeq/CodeqCli.java`（依赖 T007–T011）
+- [x] T006 [P] [US1] 域类型：`Verdict`（GREEN/RED/YELLOW/PARTIAL）、`MethodKey`（className+signature+route）、`IncrementalChange`，在 `src/main/java/com/codeq/model/Verdict.java`（及 `MethodKey.java`、`IncrementalChange.java`）
+- [x] T007 [P] [US1] GitDiffService：`ProcessBuilder` 调 `git merge-base <base> <release>` 取基线、`git diff` 取增量，产出 IncrementalChange 清单（文件/变更行/ADD|MODIFY）；无共同祖先报错，在 `src/main/java/com/codeq/diff/GitDiffService.java`
+- [x] T008 [P] [US1] AstMatcher：JavaParser 解析变更源码，建立「类名+方法签名+路由（@RequestMapping 等）」主键，把变更行归约到方法；无法归约标记 YELLOW，在 `src/main/java/com/codeq/match/AstMatcher.java`
+- [x] T009 [US1] DiffCoverRunner：`ProcessBuilder` 调 `diff-cover`（输入 coverage.xml + diff，输出 JSON），解析行级「是否执行」，在 `src/main/java/com/codeq/diffcover/DiffCoverRunner.java`（依赖 T004）
+- [x] T010 [US1] VerdictEngine：结合 AstMatcher 归约 + DiffCoverRunner 行级执行 → 三色判定 + partial（附未覆盖行明细）：全执行→GREEN、从未执行→RED、无法归约→YELLOW、部分→PARTIAL，在 `src/main/java/com/codeq/verdict/VerdictEngine.java`（依赖 T008、T009）
+- [x] T011 [US1] ReportGenerator：控制台彩色（ANSI 🟢/🔴/🟡 + 摘要统计 + 位置）+ HTML + JSON 三格式，在 `src/main/java/com/codeq/report/ReportGenerator.java`（依赖 T010）
+- [x] T012 [US1] `check` 子命令编排：串接 diff→AST→diff-cover→verdict→report；US1 MVP 支持 `--coverage-xml <path>` 本地输入；退出码 0/1/2，在 `src/main/java/com/codeq/CodeqCli.java`（依赖 T007–T011）
 
 **Checkpoint**: User Story 1 独立可用——`codeq check --coverage-xml` 产出完整三色报告
 
