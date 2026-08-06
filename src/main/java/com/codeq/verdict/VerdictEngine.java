@@ -21,6 +21,8 @@ import java.util.stream.Collectors;
  * <p>结合 AstMatcher 的行→方法归约 + diff-cover 的行级执行结果，产出每个变更方法（或方法外变更）的判定：
  * 全执行→GREEN，从未执行→RED，部分执行→PARTIAL（附未覆盖行明细），无法归约→YELLOW。
  * <p>输出做确定性排序（spec FR-010 / US3 T020）：相同输入→相同输出，无随机、无时钟依赖。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class VerdictEngine {

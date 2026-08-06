@@ -6,6 +6,8 @@ import picocli.CommandLine.Command;
 
 /**
  * Picocli 根命令。子命令在 CodeqCli.main 中以 Spring 注入的 bean 形式注册（确保 @Autowired 生效）。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 @Command(name = "codeq",

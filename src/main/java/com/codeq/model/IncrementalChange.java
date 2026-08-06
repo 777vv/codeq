@@ -4,6 +4,8 @@ import java.util.List;
 
 /**
  * 增量变更：一个变更方法（或方法外变更）及其判定（spec FR-003 / FR-013）。
+ * @author wangtao
+ * @date 2026-08-06
  */
 public class IncrementalChange {
 

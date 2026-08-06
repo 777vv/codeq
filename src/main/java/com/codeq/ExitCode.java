@@ -2,6 +2,8 @@ package com.codeq;
 
 /**
  * 统一退出码（宪法第三篇 / contracts/cli.md）。
+ * @author wangtao
+ * @date 2026-08-06
  */
 public enum ExitCode {
     /** 全部 GREEN，合规。 */

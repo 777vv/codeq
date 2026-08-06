@@ -21,6 +21,8 @@ import java.util.Map;
 /**
  * AST 精准匹配（宪法第四篇 4.1）：用 JavaParser 把变更行归约到方法，建立
  * 「类全限定名 + 方法签名 + 路由标识」主键。行号仅用于归约与可视化，不作匹配主键。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class AstMatcher {

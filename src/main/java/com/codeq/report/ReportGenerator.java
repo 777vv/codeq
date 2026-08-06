@@ -11,6 +11,8 @@ import java.util.List;
 
 /**
  * 报告生成（spec FR-004）：控制台彩色（ANSI）+ HTML + JSON 三格式。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class ReportGenerator {

@@ -19,6 +19,8 @@ import java.util.TreeSet;
  * 核心覆盖率计算（宪法第四篇 4.1 红线）：复用开源 {@code diff-cover}（Python，子进程调用），
  * 禁止自研核心比对算法——本类仅做「调用 + 解析」的业务适配封装。
  * <p>输入 Jacoco/Cobertura 的 coverage.xml + 基准分支，输出各文件已被执行的行号集合。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class DiffCoverRunner {

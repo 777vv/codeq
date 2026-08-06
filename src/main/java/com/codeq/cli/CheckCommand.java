@@ -34,6 +34,8 @@ import java.util.concurrent.Callable;
  * 版本一致性校验 → 增量 diff（git merge-base）→ 核心覆盖率（diff-cover）→ AST 匹配 + 三色判定 → 报告。
  * <p>执行数据来源二选一：本地 {@code --coverage-xml}（US1）或在线 {@code --jacoco-host/--jacoco-port}（US2）。
  * <p>诊断日志经 SLF4J（宪法 VIII），每次执行注入 traceId（MDC）；三色报告属业务输出，走 stdout。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 @Command(name = "check",

@@ -14,6 +14,8 @@ import java.util.concurrent.Callable;
 /**
  * {@code codeq dump} —— 从测试环境 Jacoco agent 拉取执行数据（spec FR-005）。
  * <p>用于确认测试环境连通性；实际判定由 {@code check --jacoco-host/--jacoco-port} 内部自动 dump+转换。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 @Command(name = "dump",

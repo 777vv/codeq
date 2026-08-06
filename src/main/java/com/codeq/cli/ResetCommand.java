@@ -13,6 +13,8 @@ import java.util.concurrent.Callable;
 
 /**
  * {@code codeq reset} —— 重置测试环境 Jacoco agent 计数（spec FR-006）。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 @Command(name = "reset",

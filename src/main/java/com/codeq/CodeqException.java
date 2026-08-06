@@ -2,6 +2,8 @@ package com.codeq;
 
 /**
  * codeq 运行时异常，携带统一退出码（ExitCode）。
+ * @author wangtao
+ * @date 2026-08-06
  */
 public class CodeqException extends RuntimeException {
 

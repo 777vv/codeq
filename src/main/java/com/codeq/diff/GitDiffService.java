@@ -14,6 +14,8 @@ import java.util.TreeSet;
 /**
  * 增量 diff 获取（宪法第四篇 4.1）：通过 {@code git merge-base} 取双分支共同基线，
  * {@code git diff} 取增量变更清单（文件 + 变更行号）。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class GitDiffService {

@@ -2,36 +2,29 @@
 Sync Impact Report
 ==================
 Constitution: codeq
-Version change: 1.0.0 → 1.1.0
-Type: MINOR — 新增 2 条 Core Principle（代码规范门禁、日志规约）
+Version change: 1.1.0 → 1.2.0
+Type: MINOR — 新增 1 条 Core Principle（类头规约）
 
-Modified principles: 无重命名/重定义；现有 I–VI 不变。
+Modified principles: 无重命名/重定义；现有 I–VIII 不变。
 Added principles:
-  - VII. Code Quality Gates / 代码规范门禁（Google 格式 + 阿里规约 + 安全扫描，必须通过才能合并）
-  - VIII. Logging Discipline / 日志规约（SLF4J；dev 彩色 console / prod JSON+traceId；禁止 System.out 打日志，业务输出除外）
+  - IX. Code Header Convention / 类头规约（Java）：每类必须 @author wangtao + @date yyyy-MM-dd
 
 Added/updated sections:
-  - Core Principles 扩展为 I–VIII
-  - 绝对红线禁令：+2（代码门禁未过禁止合并；禁止 System.out 打日志）
-  - Amendment：原则编号引用 I–VI → I–VIII
-  - 版本 1.0.0 → 1.1.0；Last Amended 2026-08-05
+  - Core Principles 扩展为 I–IX
+  - 绝对红线禁令：+1（禁止 Java 类缺少类头 @author/@date 标注）
+  - Amendment：原则编号引用 I–VIII → I–IX
+  - 版本 1.1.0 → 1.2.0；Last Amended 2026-08-06
 
 Removed sections: 无
 
 Templates / artifacts requiring updates:
-  - .specify/templates/plan-template.md   ✅ 无需改（Constitution Check 数据驱动，自动纳入 VII/VIII）
-  - .specify/templates/spec-template.md   ✅ 无需改（通用）
-  - .specify/templates/tasks-template.md  ✅ 无需改（通用）
-  - .claude/skills/speckit-*/SKILL.md     ✅ 无需改（运行时读 constitution，动态提取原则）
-  - README.md                              ⚠ 建议补：质量门禁（Google 格式 + 阿里规约 + 安全扫描）与日志规约简介
+  - .specify/templates/*.md   ✅ 无需改（数据驱动）
+  - .claude/skills/speckit-*/SKILL.md  ✅ 无需改（运行时读 constitution，动态提取原则）
 
 Follow-up TODOs（代码合规，非宪法范畴）:
-  - 现有 codeq CLI 诊断日志使用 System.err（CheckCommand / CodeqCli / DumpCommand / ResetCommand），
-    依新原则 VIII 须迁移至 SLF4J；ReportGenerator 三色报告走 stdout 属业务输出，保留。
-  - 须引入 logback-spring.xml（dev 彩色 / prod JSON LogstashEncoder + MDC traceId）
-    与 net.logstash.logback:logstash-logback-encoder 依赖。
-  - 须引入代码门禁插件：google-java-format、PMD/P3C、SpotBugs（pom + CI）。
-Source: 用户修订请求（2026-08-05），/speckit-constitution 流程。
+  - 现有 ~20 个 Java 类（feature 01）缺类头 @author/@date，依 IX 须补（作者 wangtao，日期 2026-08-06）。
+  - 建议在代码门禁（VII）增加类头检查规则（PMD 自定义规则或 CI 脚本）。
+Source: 用户修订请求（2026-08-06），/speckit-constitution 流程。
 -->
 
 # codeq Constitution / codeq 技术宪法
@@ -127,6 +120,29 @@ Source: 用户修订请求（2026-08-05），/speckit-constitution 流程。
 
 **Rationale**：结构化日志便于生产采集、检索与链路追踪；统一门面便于切换日志实现。
 
+### IX. Code Header Convention / 类头规约（Java）
+
+每个 Java 类必须（MUST）在类级 Javadoc 标注作者与创建日期：
+
+- `@author wangtao`（默认作者）
+- `@date yyyy-MM-dd`（创建日期，取当日）
+
+格式示例：
+
+```java
+/**
+ * 类的职责简述。
+ *
+ * @author wangtao
+ * @date 2026-08-06
+ */
+public class Foo { ... }
+```
+
+未标注的 Java 类禁止（MUST NOT）合并。
+
+**Rationale**：明确归属与时间线，便于追溯、协作与责任定位。
+
 ## Technical Architecture & Stack Constraints / 技术架构强制规范
 
 ### 工作架构（固定不变）
@@ -189,11 +205,12 @@ Source: 用户修订请求（2026-08-05），/speckit-constitution 流程。
 - 禁止私自修改三色风险判定标准、放宽漏测上线门禁规则。
 - 禁止绕过代码门禁（Google 格式 + 阿里规约 + 安全扫描）合并代码（VII）。
 - 禁止使用 `System.out` / `System.err` 打日志；日志必须（MUST）经 SLF4J（VIII，业务输出除外）。
+- 禁止 Java 类缺少类头 `@author` / `@date` 标注（IX）。
 
 ### 修正程序 / Amendment
 
 - 本文档为唯一官方、权威、通用的 SPEC 技术规范，涵盖架构、逻辑、规则、边界、迭代、红线全部标准；宪法具有最高优先级，凌驾于所有其他实践与文档之上。
-- 对**核心纲领（Core Principles I–VIII）或红线禁令**的任何变更视为 MAJOR，必须经过评审、记录、并提供迁移方案后方可生效；技术架构与流程细节的实质性扩展为 MINOR；措辞与澄清为 PATCH。
+- 对**核心纲领（Core Principles I–IX）或红线禁令**的任何变更视为 MAJOR，必须经过评审、记录、并提供迁移方案后方可生效；技术架构与流程细节的实质性扩展为 MINOR；措辞与澄清为 PATCH。
 - 所有 plan / spec / tasks 必须通过宪法符合性检查（Constitution Check）；任何偏离本宪法的设计与代码视为不合格迭代，必须整改回滚。
 
 ### 版本与合规审查 / Versioning & Compliance
@@ -202,4 +219,4 @@ Source: 用户修订请求（2026-08-05），/speckit-constitution 流程。
 - 每次 PR / 评审必须核验宪法合规性；复杂度必须被证明（参考 plan 的 Complexity Tracking）。
 - 运行时开发指引参见各 feature 的 `specs/[###-feature]/` 文档。
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05
+**Version**: 1.2.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-06

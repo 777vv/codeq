@@ -13,6 +13,8 @@ import java.util.concurrent.TimeUnit;
 /**
  * 子进程通用封装：统一调用外部命令（git / diff-cover），处理超时、UTF-8、退出码与输出捕获。
  * <p>宪法第四篇 4.1：git merge-base / diff-cover 均经命令调用。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class ProcessRunner {

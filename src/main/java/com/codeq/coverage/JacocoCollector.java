@@ -12,6 +12,8 @@ import java.util.Arrays;
 /**
  * 测试环境执行数据采集（宪法第四篇 4.2）：org.jacoco.core 的 TCP 服务模式，
  * 支持远程动态 dump、多轮累加（合并）、一键 reset。仅用于测试环境实例。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class JacocoCollector {

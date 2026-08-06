@@ -14,6 +14,8 @@ import picocli.CommandLine;
 /**
  * codeq CLI 入口（宪法第四篇 4.3：Java 21 + Spring Boot 3.x；CLI 经 CommandLineRunner 形态）。
  * <p>诊断日志统一经 SLF4J（宪法 VIII）；业务报告输出走 stdout。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @SpringBootApplication
 public class CodeqCli {

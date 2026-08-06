@@ -19,6 +19,8 @@ import java.util.ArrayList;
 /**
  * 将 Jacoco ExecutionDataStore（来自远程 dump）配合业务项目编译产物，
  * 生成 Jacoco XML coverage 报告，供 diff-cover 消费（宪法 4.2）。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class CoverageReportConverter {

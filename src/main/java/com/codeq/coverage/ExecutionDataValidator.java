@@ -12,6 +12,8 @@ import java.io.File;
  * 业务项目仓库当前 HEAD 必须与待发布分支 HEAD 一致，保证执行数据对应待发布版本；
  * 否则拒绝（退出码 ERROR），避免版本/commit 错配。
  * <p>环境类型（测试 vs 生产）由运维流程保证不在生产/预发挂载探针（宪法红线）。
+ * @author wangtao
+ * @date 2026-08-06
  */
 @Component
 public class ExecutionDataValidator {
