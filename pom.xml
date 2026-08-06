@@ -61,6 +61,12 @@
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
         </dependency>
+        <!-- 结构化日志（生产 profile：LogstashEncoder + MDC traceId，宪法 VIII） -->
+        <dependency>
+            <groupId>net.logstash.logback</groupId>
+            <artifactId>logstash-logback-encoder</artifactId>
+            <version>7.4</version>
+        </dependency>
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
@@ -83,6 +89,63 @@
                 <configuration>
                     <release>21</release>
                 </configuration>
+            </plugin>
+            <!-- ===== 宪法 VII：代码门禁（绑定 verify 阶段；mvn compile/package 不触发） ===== -->
+            <!-- Google Java Style 格式：mvn fmt:format 格式化 / verify 时 fmt:check -->
+            <plugin>
+                <groupId>com.spotify.fmt</groupId>
+                <artifactId>fmt-maven-plugin</artifactId>
+                <version>2.23</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 阿里巴巴 Java 规约（PMD + p3c） -->
+            <plugin>
+                <artifactId>maven-pmd-plugin</artifactId>
+                <version>3.21.2</version>
+                <dependencies>
+                    <dependency>
+                        <groupId>com.alibaba.p3c</groupId>
+                        <artifactId>p3c-pmd</artifactId>
+                        <version>2.1.1</version>
+                    </dependency>
+                </dependencies>
+                <configuration>
+                    <rulesets>
+                        <ruleset>rulesets/java/ali-naming.xml</ruleset>
+                        <ruleset>rulesets/java/ali-oop.xml</ruleset>
+                        <ruleset>rulesets/java/ali-concurrent.xml</ruleset>
+                        <ruleset>rulesets/java/ali-constant.xml</ruleset>
+                        <ruleset>rulesets/java/ali-flowcontrol.xml</ruleset>
+                        <ruleset>rulesets/java/ali-exception.xml</ruleset>
+                        <ruleset>rulesets/java/ali-comment.xml</ruleset>
+                        <ruleset>rulesets/java/ali-other.xml</ruleset>
+                        <ruleset>rulesets/java/ali-set.xml</ruleset>
+                    </rulesets>
+                    <printFailingErrors>true</printFailingErrors>
+                </configuration>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <!-- 安全扫描（SpotBugs） -->
+            <plugin>
+                <groupId>com.github.spotbugs</groupId>
+                <artifactId>spotbugs-maven-plugin</artifactId>
+                <version>4.8.6.4</version>
+                <executions>
+                    <execution>
+                        <phase>verify</phase>
+                        <goals><goal>check</goal></goals>
+                    </execution>
+                </executions>
             </plugin>
         </plugins>
     </build>

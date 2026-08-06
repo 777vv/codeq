@@ -51,6 +51,37 @@ codeq 不管理测试用例、不执行测试、不做断言，只回答一个�
 
 ---
 
+## 构建与使用 / Build & Usage
+
+### 前置 / Prerequisites
+- JDK 21、Maven 3.9+
+- git
+- Python 3 + `pip install diff-cover`（`diff-cover` 是核心比对引擎，宪法 4.1 强制复用，禁止自研）
+
+### 构建 / Build
+```bash
+mvn -DskipTests package      # 产物 target/codeq-0.1.0-SNAPSHOT.jar
+```
+
+### 命令 / Commands
+```bash
+# 一键检测（执行数据来源二选一）
+java -jar target/codeq-0.1.0-SNAPSHOT.jar check \
+  --repo <业务项目仓库> --baseline <线上分支> --release <待发布分支> \
+  --coverage-xml coverage.xml                      # US1：本地执行数据
+  # --jacoco-host <test-host> --jacoco-port 6300   # US2：在线 dump 测试环境
+
+# 辅助子命令
+java -jar target/codeq-0.1.0-SNAPSHOT.jar dump  --jacoco-host <h> --jacoco-port <p>  # 探测连通
+java -jar target/codeq-0.1.0-SNAPSHOT.jar reset --jacoco-host <h> --jacoco-port <p>  # 重置 agent 计数
+```
+
+**退出码**：`0` 全绿（合规）｜ `1` 有红/黄/partial（需人工或拦截）｜ `2` 输入/版本错误。
+
+业务项目测试环境挂载 Jacoco agent 的零侵入接入见 [docs/integration-java.md](docs/integration-java.md)。
+
+---
+
 ## 仓库结构
 
 ```text

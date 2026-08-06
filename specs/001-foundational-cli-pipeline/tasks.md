@@ -109,8 +109,8 @@ description: "基础链路打通命令行管线的实现任务清单"
 
 **Purpose**: 跨 user story 的收尾与质量
 
-- [ ] T022 [P] 对齐 README 与 quickstart：补 JDK 21 / Python 3 + diff-cover / git 前置、实际命令示例，在 `README.md`、`specs/001-foundational-cli-pipeline/quickstart.md`
-- [ ] T023 [P] 错误信息与日志规范化（中文、清晰原因、对齐宪法口径），在各模块
+- [x] T022 [P] 对齐 README 与 quickstart：补 JDK 21 / Python 3 + diff-cover / git 前置、实际命令示例，在 `README.md`、`specs/001-foundational-cli-pipeline/quickstart.md`
+- [x] T023 [P] 错误信息与日志规范化（中文、清晰原因、对齐宪法口径），在各模块
 - [ ] T024 性能：中等仓库（数十万行）单次检查 ≤ 5min 验证与必要优化（并发 AST 解析 / 流式 diff），在 `src/main/java/com/codeq/{match,diff,diffcover}/`
 - [ ] T025 运行 quickstart.md 端到端验证（三场景 + 验证矩阵），对照 `specs/001-foundational-cli-pipeline/quickstart.md`
 

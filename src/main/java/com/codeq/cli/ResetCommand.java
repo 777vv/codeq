@@ -2,6 +2,8 @@ package com.codeq.cli;
 
 import com.codeq.ExitCode;
 import com.codeq.coverage.JacocoCollector;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import picocli.CommandLine.Command;
@@ -18,7 +20,10 @@ import java.util.concurrent.Callable;
         mixinStandardHelpOptions = true)
 public class ResetCommand implements Callable<Integer> {
 
-    @Autowired private JacocoCollector collector;
+    private static final Logger log = LoggerFactory.getLogger(ResetCommand.class);
+
+    @Autowired
+    private JacocoCollector collector;
 
     @Option(names = {"--jacoco-host"}, required = true, description = "测试环境 Jacoco agent host")
     String host;
@@ -29,7 +34,7 @@ public class ResetCommand implements Callable<Integer> {
     @Override
     public Integer call() {
         collector.reset(host, port);
-        System.out.println("已重置 " + host + ":" + port + " 的 Jacoco 计数。");
+        log.info("已重置 {}:{} 的 Jacoco 计数", host, port);
         return ExitCode.OK.code();
     }
 }

@@ -4,6 +4,8 @@ import com.codeq.cli.CheckCommand;
 import com.codeq.cli.CodeqCommand;
 import com.codeq.cli.DumpCommand;
 import com.codeq.cli.ResetCommand;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -11,11 +13,12 @@ import picocli.CommandLine;
 
 /**
  * codeq CLI 入口（宪法第四篇 4.3：Java 21 + Spring Boot 3.x；CLI 经 CommandLineRunner 形态）。
- * <p>main 启动 Spring 容器，取 Picocli 根命令 bean 并以 Spring 注入的 CheckCommand 注册为子命令，
- * 执行命令行参数后以退出码退出。
+ * <p>诊断日志统一经 SLF4J（宪法 VIII）；业务报告输出走 stdout。
  */
 @SpringBootApplication
 public class CodeqCli {
+
+    private static final Logger log = LoggerFactory.getLogger(CodeqCli.class);
 
     public static void main(String[] args) {
         // 不把命令行 args 传给 Spring，避免其尝试解析 picocli 的 --repo 等参数
@@ -33,10 +36,10 @@ public class CodeqCli {
             cli.addSubcommand("reset", reset);
             code = cli.execute(args);
         } catch (CodeqException e) {
-            System.err.println("错误: " + e.getMessage());
+            log.error("运行失败: {}", e.getMessage());
             code = e.exitCode().code();
         } catch (Exception e) {
-            System.err.println("错误: " + e.getMessage());
+            log.error("运行失败: {}", e.getMessage(), e);
             code = ExitCode.ERROR.code();
         } finally {
             ctx.close();

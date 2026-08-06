@@ -2,35 +2,36 @@
 Sync Impact Report
 ==================
 Constitution: codeq
-Version change: (none — initial fill from unpopulated template) → 1.0.0
-Type: Initial ratification
+Version change: 1.0.0 → 1.1.0
+Type: MINOR — 新增 2 条 Core Principle（代码规范门禁、日志规约）
 
-Modified principles: N/A (first population). The user-authored 8-chapter
-technical spec (总则 + 第一~第八篇章) was mapped into the template skeleton:
-  - Iron laws (Ch2) + red lines (Ch7) → Core Principles I–VI
-  - Technical architecture (Ch4) → Section "Technical Architecture & Stack Constraints"
-  - Capability boundaries (Ch5) + iteration priority (Ch6) → Section "Capability Boundaries & Iteration Priority"
-  - Red lines (Ch7) + final interpretation (Ch8) + preamble → Governance
-Verbatim terminology preserved (diff-cover, git merge-base, AST, Jacoco TCP,
-Monaco Editor, Vue3, Java 21, Spring Boot 3.x, 三色判定, 增量代码, etc.).
+Modified principles: 无重命名/重定义；现有 I–VI 不变。
+Added principles:
+  - VII. Code Quality Gates / 代码规范门禁（Google 格式 + 阿里规约 + 安全扫描，必须通过才能合并）
+  - VIII. Logging Discipline / 日志规约（SLF4J；dev 彩色 console / prod JSON+traceId；禁止 System.out 打日志，业务输出除外）
 
-Added sections:
-  - Core Principles (I–VI)
-  - Technical Architecture & Stack Constraints / 技术架构强制规范
-  - Capability Boundaries & Iteration Priority / 能力边界与迭代优先级
-  - Governance (Absolute Red Lines + Amendment + Versioning & Compliance)
+Added/updated sections:
+  - Core Principles 扩展为 I–VIII
+  - 绝对红线禁令：+2（代码门禁未过禁止合并；禁止 System.out 打日志）
+  - Amendment：原则编号引用 I–VI → I–VIII
+  - 版本 1.0.0 → 1.1.0；Last Amended 2026-08-05
 
-Removed sections: N/A
+Removed sections: 无
 
 Templates / artifacts requiring updates:
-  - .specify/templates/plan-template.md   ✅ no change (Constitution Check is data-driven: "[Gates determined based on constitution file]")
-  - .specify/templates/spec-template.md   ✅ no change (generic, no principle-specific references)
-  - .specify/templates/tasks-template.md  ✅ no change (generic; test-first note already aligns)
-  - .claude/skills/speckit-*/SKILL.md     ✅ no change (all load .specify/memory/constitution.md at runtime; speckit-analyze extracts principle names + MUST/SHOULD normative statements dynamically — no hardcoded principle names)
-  - README.md / docs/quickstart.md        ✅ n/a (none present)
+  - .specify/templates/plan-template.md   ✅ 无需改（Constitution Check 数据驱动，自动纳入 VII/VIII）
+  - .specify/templates/spec-template.md   ✅ 无需改（通用）
+  - .specify/templates/tasks-template.md  ✅ 无需改（通用）
+  - .claude/skills/speckit-*/SKILL.md     ✅ 无需改（运行时读 constitution，动态提取原则）
+  - README.md                              ⚠ 建议补：质量门禁（Google 格式 + 阿里规约 + 安全扫描）与日志规约简介
 
-Follow-up TODOs: none. Ratification date set to initial adoption (2026-08-05).
-Source of truth: user-authored codeq technical constitution (8 chapters + preamble), provided via /speckit-constitution.
+Follow-up TODOs（代码合规，非宪法范畴）:
+  - 现有 codeq CLI 诊断日志使用 System.err（CheckCommand / CodeqCli / DumpCommand / ResetCommand），
+    依新原则 VIII 须迁移至 SLF4J；ReportGenerator 三色报告走 stdout 属业务输出，保留。
+  - 须引入 logback-spring.xml（dev 彩色 / prod JSON LogstashEncoder + MDC traceId）
+    与 net.logstash.logback:logstash-logback-encoder 依赖。
+  - 须引入代码门禁插件：google-java-format、PMD/P3C、SpotBugs（pom + CI）。
+Source: 用户修订请求（2026-08-05），/speckit-constitution 流程。
 -->
 
 # codeq Constitution / codeq 技术宪法
@@ -104,6 +105,28 @@ Source of truth: user-authored codeq technical constitution (8 chapters + preamb
 
 **Rationale**：明确权责、不越界、不背锅，避免范围蔓延稀释核心价值。
 
+### VII. Code Quality Gates / 代码规范门禁（NON-NEGOTIABLE，必须通过才能合并）
+
+所有代码必须（MUST）同时通过以下门禁方可合并：
+
+- **Google Java Style** 格式校验（google-java-format）。
+- **阿里巴巴 Java 开发手册**规约（PMD / P3C 或等价静态扫描）。
+- **安全扫描零高危**（SpotBugs / CodeQL / Snyk 等）。
+
+任一门禁未通过，禁止（MUST NOT）合并。
+
+**Rationale**：统一风格、规避常见缺陷、阻断安全高危，保障团队协作与线上质量。
+
+### VIII. Logging Discipline / 日志规约
+
+- 统一通过 **SLF4J** 打日志；禁止（MUST NOT）使用 `System.out` / `System.err` 打**日志**。
+  - 例外：CLI 等程序的**业务结果输出**（如 codeq 三色报告）走 stdout，属正常输出流，不视为日志，不在此限。
+- **开发环境**（profile = dev / 默认）：彩色 console pattern。
+- **生产环境**（profile = prod）：JSON 输出（LogstashEncoder），携带 `traceId`（MDC）。
+- 日志须含足够上下文；禁止（MUST NOT）打印密钥、凭证、个人数据等敏感信息。
+
+**Rationale**：结构化日志便于生产采集、检索与链路追踪；统一门面便于切换日志实现。
+
 ## Technical Architecture & Stack Constraints / 技术架构强制规范
 
 ### 工作架构（固定不变）
@@ -164,11 +187,13 @@ Source of truth: user-authored codeq technical constitution (8 chapters + preamb
 - 禁止使用非当前待发布版本的测试流量做上线合规判定。
 - 禁止拓展平台职责边界（测试用例管理、测试执行、断言校验等）。
 - 禁止私自修改三色风险判定标准、放宽漏测上线门禁规则。
+- 禁止绕过代码门禁（Google 格式 + 阿里规约 + 安全扫描）合并代码（VII）。
+- 禁止使用 `System.out` / `System.err` 打日志；日志必须（MUST）经 SLF4J（VIII，业务输出除外）。
 
 ### 修正程序 / Amendment
 
 - 本文档为唯一官方、权威、通用的 SPEC 技术规范，涵盖架构、逻辑、规则、边界、迭代、红线全部标准；宪法具有最高优先级，凌驾于所有其他实践与文档之上。
-- 对**核心纲领（Core Principles I–VI）或红线禁令**的任何变更视为 MAJOR，必须经过评审、记录、并提供迁移方案后方可生效；技术架构与流程细节的实质性扩展为 MINOR；措辞与澄清为 PATCH。
+- 对**核心纲领（Core Principles I–VIII）或红线禁令**的任何变更视为 MAJOR，必须经过评审、记录、并提供迁移方案后方可生效；技术架构与流程细节的实质性扩展为 MINOR；措辞与澄清为 PATCH。
 - 所有 plan / spec / tasks 必须通过宪法符合性检查（Constitution Check）；任何偏离本宪法的设计与代码视为不合格迭代，必须整改回滚。
 
 ### 版本与合规审查 / Versioning & Compliance
@@ -177,4 +202,4 @@ Source of truth: user-authored codeq technical constitution (8 chapters + preamb
 - 每次 PR / 评审必须核验宪法合规性；复杂度必须被证明（参考 plan 的 Complexity Tracking）。
 - 运行时开发指引参见各 feature 的 `specs/[###-feature]/` 文档。
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05
+**Version**: 1.1.0 | **Ratified**: 2026-08-05 | **Last Amended**: 2026-08-05

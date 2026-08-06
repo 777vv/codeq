@@ -14,6 +14,9 @@ import com.codeq.model.Verdict;
 import com.codeq.report.ReportGenerator;
 import com.codeq.verdict.VerdictEngine;
 import org.jacoco.core.data.ExecutionDataStore;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import picocli.CommandLine.Command;
@@ -30,6 +33,7 @@ import java.util.concurrent.Callable;
  * {@code codeq check} —— 一键全流程检测（宪法第三篇 3.1 唯一入口）：
  * 版本一致性校验 → 增量 diff（git merge-base）→ 核心覆盖率（diff-cover）→ AST 匹配 + 三色判定 → 报告。
  * <p>执行数据来源二选一：本地 {@code --coverage-xml}（US1）或在线 {@code --jacoco-host/--jacoco-port}（US2）。
+ * <p>诊断日志经 SLF4J（宪法 VIII），每次执行注入 traceId（MDC）；三色报告属业务输出，走 stdout。
  */
 @Component
 @Command(name = "check",
@@ -37,20 +41,29 @@ import java.util.concurrent.Callable;
         mixinStandardHelpOptions = true)
 public class CheckCommand implements Callable<Integer> {
 
+    private static final Logger log = LoggerFactory.getLogger(CheckCommand.class);
+
     @Autowired
     private GitDiffService gitDiff;
+
     @Autowired
     private AstMatcher astMatcher;
+
     @Autowired
     private DiffCoverRunner diffCover;
+
     @Autowired
     private VerdictEngine verdictEngine;
+
     @Autowired
     private ReportGenerator report;
+
     @Autowired
     private JacocoCollector jacoco;
+
     @Autowired
     private CoverageReportConverter converter;
+
     @Autowired
     private ExecutionDataValidator validator;
 
@@ -85,51 +98,54 @@ public class CheckCommand implements Callable<Integer> {
     @Override
     public Integer call() {
         if (!repo.isDirectory()) {
-            System.err.println("错误: --repo 不是有效目录: " + repo);
+            log.error("--repo 不是有效目录: {}", repo);
             return ExitCode.ERROR.code();
         }
-        // US3 T018：版本一致性校验（执行数据须对应待发布版本）
+        MDC.put("traceId", taskId + "-" + Long.toHexString(System.nanoTime()));
         try {
-            validator.validate(repo, release);
-        } catch (CodeqException e) {
-            System.err.println("错误: " + e.getMessage());
-            return ExitCode.ERROR.code();
-        }
+            // US3 T018：版本一致性校验（执行数据须对应待发布版本）
+            try {
+                validator.validate(repo, release);
+            } catch (CodeqException e) {
+                log.error("{}", e.getMessage());
+                return ExitCode.ERROR.code();
+            }
 
-        File covXml;
-        try {
-            covXml = resolveCoverageXml();
-        } catch (Exception e) {
-            System.err.println("错误: " + e.getMessage());
-            return ExitCode.ERROR.code();
-        }
+            File covXml;
+            try {
+                covXml = resolveCoverageXml();
+            } catch (Exception e) {
+                log.error("{}", e.getMessage());
+                return ExitCode.ERROR.code();
+            }
 
-        // 1. 增量基线 + diff（宪法 4.1：git merge-base）
-        String base = gitDiff.mergeBase(repo, baseline, release);
-        IsolationKey iso = new IsolationKey(repo.getName(), release, base, taskId,
-                jacocoHost != null ? jacocoHost + ":" + jacocoPort : "local-file");
-        System.err.println("隔离键: " + iso);
+            // 1. 增量基线 + diff（宪法 4.1：git merge-base）
+            String base = gitDiff.mergeBase(repo, baseline, release);
+            IsolationKey iso = new IsolationKey(repo.getName(), release, base, taskId,
+                    jacocoHost != null ? jacocoHost + ":" + jacocoPort : "local-file");
+            log.info("隔离键: {}", iso);
 
-        Map<String, TreeSet<Integer>> changed = gitDiff.changedLines(repo, base, release);
-        if (changed.isEmpty()) {
-            System.out.println("零增量变更（待发布分支与基准相同），无需校验。");
-            return ExitCode.OK.code();
+            Map<String, TreeSet<Integer>> changed = gitDiff.changedLines(repo, base, release);
+            if (changed.isEmpty()) {
+                log.info("零增量变更（待发布分支与基准相同），无需校验。");
+                return ExitCode.OK.code();
+            }
+            // 2. 核心覆盖率（宪法 4.1 红线：复用 diff-cover）
+            Map<String, TreeSet<Integer>> covered = diffCover.coveredLines(repo, covXml, base);
+            // 3. AST 匹配 + 三色判定（宪法 4.1 / 第五篇）；输出确定性排序（US3 T020）
+            List<IncrementalChange> changes =
+                    verdictEngine.compute(repo, base, release, changed, covered);
+            // 4. 报告（FR-004）
+            emit(changes, repo.getAbsolutePath());
+            // 5. 退出码：全 GREEN→0；存在 RED/YELLOW/PARTIAL→1
+            boolean risk = changes.stream().anyMatch(c -> c.getVerdict() != Verdict.GREEN);
+            return risk ? ExitCode.RISK.code() : ExitCode.OK.code();
+        } finally {
+            MDC.remove("traceId");
         }
-        // 2. 核心覆盖率（宪法 4.1 红线：复用 diff-cover）
-        Map<String, TreeSet<Integer>> covered = diffCover.coveredLines(repo, covXml, base);
-        // 3. AST 匹配 + 三色判定（宪法 4.1 / 第五篇）；输出确定性排序（US3 T020）
-        List<IncrementalChange> changes =
-                verdictEngine.compute(repo, base, release, changed, covered);
-        // 4. 报告（FR-004）
-        emit(changes, repo.getAbsolutePath());
-        // 5. 退出码：全 GREEN→0；存在 RED/YELLOW/PARTIAL→1
-        boolean risk = changes.stream().anyMatch(c -> c.getVerdict() != Verdict.GREEN);
-        return risk ? ExitCode.RISK.code() : ExitCode.OK.code();
     }
 
-    /**
-     * 解析执行数据来源：本地 coverage.xml 或在线 dump（转 coverage.xml）。
-     */
+    /** 解析执行数据来源：本地 coverage.xml 或在线 dump（转 coverage.xml）。 */
     private File resolveCoverageXml() throws Exception {
         if (coverageXml != null) {
             if (!coverageXml.isFile()) {
@@ -158,14 +174,15 @@ public class CheckCommand implements Callable<Integer> {
 
     private void writeOrPrint(String content, File target) {
         if (target == null) {
+            // 报告内容属业务输出（宪法 VIII 例外），走 stdout
             System.out.println(content);
             return;
         }
         try {
             Files.writeString(target.toPath(), content);
-            System.err.println("报告已写入: " + target.getAbsolutePath());
+            log.info("报告已写入: {}", target.getAbsolutePath());
         } catch (Exception e) {
-            System.err.println("写入报告失败: " + e.getMessage());
+            log.error("写入报告失败: {}", e.getMessage());
         }
     }
 }
