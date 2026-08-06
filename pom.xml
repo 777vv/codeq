@@ -27,10 +27,31 @@
     </properties>
 
     <dependencies>
-        <!-- 宪法第四篇 4.3：后端 Java 21 + Spring Boot 3.x（CLI 经 CommandLineRunner） -->
+        <!-- 宪法第四篇 4.3：后端 Java 21 + Spring Boot 3.x；feature 02 起 web 服务 + CLI 双模式 -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter</artifactId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+        <!-- JPA 持久化（feature 02） -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-data-jpa</artifactId>
+        </dependency>
+        <!-- 参数校验 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+        <!-- 数据库驱动：PostgreSQL(prod) / H2(dev,test) -->
+        <dependency>
+            <groupId>org.postgresql</groupId>
+            <artifactId>postgresql</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
         </dependency>
         <!-- CLI 参数解析（Picocli） -->
         <dependency>

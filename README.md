@@ -80,6 +80,25 @@ java -jar target/codeq-0.1.0-SNAPSHOT.jar reset --jacoco-host <h> --jacoco-port 
 
 业务项目测试环境挂载 Jacoco agent 的零侵入接入见 [docs/integration-java.md](docs/integration-java.md)。
 
+### 服务模式（feature 02 / 迭代 #2）
+
+无 CLI 子命令启动 → web 服务常驻（默认 8080）：
+
+```bash
+# dev（H2 内存 + 彩色 console 日志）
+java -jar target/codeq-0.1.0-SNAPSHOT.jar
+
+# prod（PostgreSQL + JSON 日志，宪法 VIII）
+java -Dspring.profiles.active=prod -DDB_URL=jdbc:postgresql://... \
+     -DDB_USERNAME=codeq -DDB_PASSWORD=*** -jar target/codeq-0.1.0-SNAPSHOT.jar
+```
+
+REST 接口（详见 [specs/002-scan-service/contracts/api.md](specs/002-scan-service/contracts/api.md)）：
+
+- `POST /api/scans` 提交扫描（异步）→ taskId
+- `GET /api/scans/{id}` / `/{id}/result` / `/{id}/verdict`
+- `GET /api/scans?repo=&version=` 历史回溯
+
 ---
 
 ## 仓库结构
