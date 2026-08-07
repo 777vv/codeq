@@ -15,7 +15,7 @@ codeq 不管理测试用例、不执行测试、不做断言，只回答一个�
 - **零侵入接入**：业务项目不改造代码、不引入强依赖，仅在测试环境挂载采集器即可接入。
 - **发布门禁**：判定结果作为公司版本发布的官方唯一代码覆盖合规依据。
 
-完整最高准则见 [`.specify/memory/constitution.md`](.specify/memory/constitution.md)（codeq 技术宪法 v1.0.0）。
+完整最高准则见 [`.specify/memory/constitution.md`](.specify/memory/constitution.md)（codeq 技术宪法 v1.2.0）。
 
 ---
 
@@ -40,47 +40,64 @@ codeq 不管理测试用例、不执行测试、不做断言，只回答一个�
 | 层 | 选型 |
 |----|------|
 | 后端 | Java 21 + Spring Boot 3.x（核心逻辑服务端闭环、任务全异步化） |
-| 前端 | Vue3（参数录入、进度展示、三色 Diff 可视化、报告导出） |
+| 前端 | Vue3 + Monaco Editor（扫描表单、进度、三色 Diff 可视化、报告导出） |
 | 代码比对 | `git merge-base` 取双分支共同基线 + 复用开源 `diff-cover` 引擎 |
 | 精准匹配 | AST 语法树解析，以「类名 + 方法签名 + 路由标识」为主键（行号仅用于可视化） |
 | 流量采集 | Java 项目于测试环境挂载 Jacoco Agent（TCP 服务模式，支持远程 dump / 多轮累加 / 一键重置） |
-| 可视化 | Monaco Editor（代码 Diff 高亮） |
-| 代码规范 | 《阿里巴巴 Java 开发手册》 |
+| 代码规范 | Google Java Style + 《阿里巴巴 Java 开发手册》+ 安全扫描（宪法 VII） |
+| 日志 | SLF4J（dev 彩色 console / prod JSON + traceId，宪法 VIII） |
 
 > 生产 / 预发环境**严禁**挂载任何探针；仅测试环境采集的流量有效。
 
 ---
 
-## 构建与使用 / Build & Usage
+## 使用方法 / Usage
 
 ### 前置 / Prerequisites
-- JDK 21、Maven 3.9+
-- git
-- Python 3 + `pip install diff-cover`（`diff-cover` 是核心比对引擎，宪法 4.1 强制复用，禁止自研）
+- JDK 21、Maven 3.9+、git
+- Python 3 + `pip install diff-cover`（核心比对引擎，宪法 4.1 强制复用，禁止自研）
+- 前端联调另需 Node.js 20+
 
 ### 构建 / Build
 ```bash
 mvn -DskipTests package      # 产物 target/codeq-0.1.0-SNAPSHOT.jar
 ```
 
-### 命令 / Commands
+> Windows cmd 中文/emoji 显示乱码时，先 `chcp 65001` 切 UTF-8（或在 PowerShell / IDE 终端跑）。
+
+codeq 有 **四种使用形态**，按调试难度递增：
+
+### 形态 A：CLI + 本地 coverage.xml（最快调试，无需 Jacoco）
+
+用一份现成的 `coverage.xml`（cobertura/jacoco 格式）作为执行数据，直接出三色判定。适合调试核心判定逻辑。
+
 ```bash
-# 一键检测（执行数据来源二选一）
 java -jar target/codeq-0.1.0-SNAPSHOT.jar check \
   --repo <业务项目仓库> --baseline <线上分支> --release <待发布分支> \
-  --coverage-xml coverage.xml                      # US1：本地执行数据
-  # --jacoco-host <test-host> --jacoco-port 6300   # US2：在线 dump 测试环境
+  --coverage-xml <path/to/coverage.xml>
+```
+
+**调试样例**：见下方「最小调试样例」，开箱跑出 🔴 漏测判定。
+
+### 形态 B：CLI + 测试环境 Jacoco（完整链路）
+
+业务项目测试环境挂 Jacoco agent（`output=tcpserver`，接入见 [docs/integration-java.md](docs/integration-java.md)），跑测试流量后远程 dump 判定：
+
+```bash
+java -jar target/codeq-0.1.0-SNAPSHOT.jar check \
+  --repo <业务项目> --baseline <线上分支> --release <待发布分支> \
+  --jacoco-host <test-host> --jacoco-port 6300
 
 # 辅助子命令
 java -jar target/codeq-0.1.0-SNAPSHOT.jar dump  --jacoco-host <h> --jacoco-port <p>  # 探测连通
 java -jar target/codeq-0.1.0-SNAPSHOT.jar reset --jacoco-host <h> --jacoco-port <p>  # 重置 agent 计数
 ```
 
+> 生产 / 预发**严禁**挂载 agent（宪法红线）；仅测试环境流量有效。
+
 **退出码**：`0` 全绿（合规）｜ `1` 有红/黄/partial（需人工或拦截）｜ `2` 输入/版本错误。
 
-业务项目测试环境挂载 Jacoco agent 的零侵入接入见 [docs/integration-java.md](docs/integration-java.md)。
-
-### 服务模式（feature 02 / 迭代 #2）
+### 形态 C：REST 服务（feature 02）
 
 无 CLI 子命令启动 → web 服务常驻（默认 8080）：
 
@@ -93,27 +110,61 @@ java -Dspring.profiles.active=prod -DDB_URL=jdbc:postgresql://... \
      -DDB_USERNAME=codeq -DDB_PASSWORD=*** -jar target/codeq-0.1.0-SNAPSHOT.jar
 ```
 
-REST 接口（详见 [specs/002-scan-service/contracts/api.md](specs/002-scan-service/contracts/api.md)）：
-
-- `POST /api/scans` 提交扫描（异步）→ taskId
-- `GET /api/scans/{id}` / `/{id}/result` / `/{id}/verdict`
-- `GET /api/scans?repo=&version=` 历史回溯
-
-### 前端可视化（feature 03 / 迭代 #3）
-
-Web 界面（Vue3 + Monaco Editor）位于 `frontend/`，复用上述 REST API（FR-009）。
-
 ```bash
-# 开发（前端 :5173，proxy /api → 后端 :8080）
-cd frontend && npm install && npm run dev
-
-# 生产构建（前后端不分离，宪法 4.3）：构建产物拷到后端静态资源
-cd frontend && npm run build
-cp -r dist/* ../src/main/resources/static/
-java -jar target/codeq-0.1.0-SNAPSHOT.jar   # 浏览器访问 http://localhost:8080
+curl -X POST localhost:8080/api/scans -H "Content-Type: application/json" -d '{
+  "repo":"<业务项目>","baseline":"<线上分支>","release":"<待发布分支>",
+  "coverageXmlPath":"<coverage.xml>"}'      # → {"taskId":"...","status":"PENDING"}
+curl localhost:8080/api/scans/<taskId>           # 轮询状态
+curl localhost:8080/api/scans/<taskId>/result    # 三色明细
+curl localhost:8080/api/scans/<taskId>/verdict   # {pass, totals}
+curl 'localhost:8080/api/scans?repo=&version='   # 历史回溯
 ```
 
-详见 [specs/003-scan-dashboard/quickstart.md](specs/003-scan-dashboard/quickstart.md)。
+接口契约详见 [specs/002-scan-service/contracts/api.md](specs/002-scan-service/contracts/api.md)。
+
+### 形态 D：前端可视化（feature 03）
+
+Vue3 + Monaco Web 界面，复用形态 C 的 REST API：
+
+```bash
+# 终端1：后端（形态 C）
+# 终端2：前端（dev，:5173 proxy /api → :8080）
+cd frontend && npm install && npm run dev      # 浏览器 http://localhost:5173
+
+# 生产构建（前后端不分离，宪法 4.3）：构建产物拷到后端静态资源
+cd frontend && npm run build && cp -r dist/* ../src/main/resources/static/
+java -jar target/codeq-0.1.0-SNAPSHOT.jar      # 浏览器 http://localhost:8080
+```
+
+浏览器：填表（repo/baseline/release/coverageXmlPath 或 Jacoco 端点）→ 开始扫描 → 进度 → Monaco 三色 Diff + 导出 HTML 报告。详见 [specs/003-scan-dashboard/quickstart.md](specs/003-scan-dashboard/quickstart.md)。
+
+### 最小调试样例（形态 A 开箱）
+
+无需业务项目与 Jacoco，用一个最小 Java demo 验证三色判定。在 codeq 仓库**外**准备：
+
+```bash
+DEMO=../codeq-demo
+mkdir -p "$DEMO/src/main/java/demo" && cd "$DEMO"
+git init -b main
+
+# baseline：只有 add 方法
+printf 'package demo;\n\npublic class Demo {\n    public int add(int a, int b) {\n        return a + b;\n    }\n}\n' > src/main/java/demo/Demo.java
+git add -A && git commit -m baseline && git branch baseline
+
+# release：新增 sub 方法
+printf 'package demo;\n\npublic class Demo {\n    public int add(int a, int b) {\n        return a + b;\n    }\n    public int sub(int a, int b) {\n        return a - b;\n    }\n}\n' > src/main/java/demo/Demo.java
+git checkout -b release && git add -A && git commit -m "release: add sub"
+
+# coverage.xml：sub 的 return（行8）hits=0 → 漏测
+printf '<?xml version="1.0"?>\n<coverage>\n  <packages><package name="demo"><classes><class name="demo.Demo" filename="src/main/java/demo/Demo.java"><lines><line number="5" hits="1"/><line number="8" hits="0"/></lines></class></classes></package></packages>\n</coverage>\n' > coverage.xml
+
+# 跑 codeq（在 codeq 仓库目录）
+java -jar ../codeq/target/codeq-0.1.0-SNAPSHOT.jar check \
+  --repo "$DEMO" --baseline baseline --release release --coverage-xml coverage.xml
+# 期望：🔴 demo.Demo#sub(int,int) 高危漏测，退出码 1
+```
+
+把 `coverage.xml` 里 `<line number="8" hits="0"/>` 改成 `hits="1"` → sub 变 🟢 绿色，退出码 `0`。
 
 ---
 
@@ -121,19 +172,17 @@ java -jar target/codeq-0.1.0-SNAPSHOT.jar   # 浏览器访问 http://localhost:8
 
 ```text
 codeq/
-├── .claude/skills/                 # Spec Kit 的 Claude 技能定义（/speckit-* 命令）
-├── .specify/                       # Spec Kit 核心配置
-│   ├── memory/constitution.md      # 项目宪法（最高准则，v1.0.0）
-│   ├── templates/                  # spec / plan / tasks / checklist 模板
-│   ├── scripts/powershell/         # Spec Kit 辅助脚本
-│   ├── integrations/               # 集成清单
-│   └── feature.json                # 当前 feature 指针
+├── src/main/java/com/codeq/        # 后端 Java（feature 01/02 核心 + REST + JPA + 异步）
+├── src/main/resources/             # application.yml、logback-spring.xml
+├── frontend/                       # 前端 Vue3 + Vite + Monaco（feature 03）
+├── docs/integration-java.md        # 业务项目 Jacoco 零侵入接入
 ├── specs/                          # 功能规格（每个 feature 一个目录）
-│   └── 001-foundational-cli-pipeline/
-│       ├── spec.md                 # 基础链路打通（迭代 #1）规格
-│       └── checklists/requirements.md
-├── README.md
-└── .gitignore
+│   ├── 001-foundational-cli-pipeline/   # 迭代 #1：CLI 基础链路
+│   ├── 002-scan-service/                # 迭代 #2：扫描服务化（REST + JPA）
+│   └── 003-scan-dashboard/              # 迭代 #3：前端可视化
+├── .specify/                       # Spec Kit 配置 + 宪法（v1.2.0）+ 模板
+├── pom.xml
+└── README.md
 ```
 
 ---
@@ -155,12 +204,12 @@ codeq/
 
 ## 迭代路线（宪法第六篇章，固定顺序）
 
-1. **基础链路打通** ← 当前（feature 001）：探针采集 + 分支 Diff + 增量覆盖比对，命令行可用链路
-2. **核心接口服务化**：后端通用接口 + 异步任务调度 + 数据持久化
-3. **前端可视化落地**：分支选择、扫描进度、三色 Diff 展示、报告导出
-4. **AST 精准匹配优化**：解决行号漂移、重构误判
-5. **发布门禁闭环**：打通发布平台，风险拦截 + 人工豁免记录
-6. **性能与数据治理优化**：TTL 清理、性能强化
+1. ✅ **基础链路打通**（feature 001）：探针采集 + 分支 Diff + 增量覆盖比对，命令行可用链路
+2. ✅ **核心接口服务化**（feature 002）：后端 REST + 异步任务 + JPA 持久化 + 门禁查询
+3. ✅ **前端可视化落地**（feature 003）：分支选择、扫描进度、三色 Diff 展示、报告导出
+4. ⏭ **AST 精准匹配优化**：解决行号漂移、重构误判
+5. ⏭ **发布门禁闭环**：打通发布平台，风险拦截 + 人工豁免记录
+6. ⏭ **性能与数据治理优化**：TTL 清理、性能强化
 
 ---
 
@@ -173,14 +222,15 @@ codeq/
 - 禁止使用非当前待发布版本的测试流量做上线合规判定
 - 禁止拓展职责边界（测试用例管理 / 测试执行 / 断言校验）
 - 禁止私自修改三色判定标准、放宽漏测上线门禁
+- 禁止 Java 类缺少类头 `@author`/`@date`、禁止用 `System.out` 打日志（宪法 VII/VIII/IX）
 
 ---
 
 ## 当前进度
 
-- ✅ 宪法 v1.0.0 已批准
-- ✅ Feature 001（基础链路打通）规格已完成并通过质量校验
-- ⏭ 下一步：`/speckit-plan` 生成实施计划
+- ✅ 宪法 v1.2.0（9 条 Core Principle：真实流量/增量/AST/零侵入/三色/边界/代码门禁/日志/类头）
+- ✅ Feature 001（CLI 基础链路）、002（扫描服务化）、003（前端可视化）—— 实现 + 构建通过
+- ⏭ 下一步：AST 精准匹配优化（迭代 #4），或本机实跑联调（CLI/服务/前端）
 
 ## License
 
