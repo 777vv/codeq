@@ -71,8 +71,8 @@ description: "扫描可视化看板（前端可视化落地）的实现任务清
 
 ### Implementation for User Story 2
 
-- [ ] T008 [US2] `DiffViewer.vue`：props `changes`；Monaco Editor 展示变更文件，按 verdict 着色（绿/红/黄/partial）；颜色过滤器（all/green/red/yellow/partial）；展示方法主键（className+signature+route），在 `frontend/src/components/DiffViewer.vue`（依赖 T003 monaco 配置）
-- [ ] T009 [US2] `ResultView.vue`：`getResult(id)` 拉取结果 → `DiffViewer` 展示；显示 pass + 三色统计，在 `frontend/src/views/ResultView.vue`（依赖 T004、T008）
+- [x] T008 [US2] `DiffViewer.vue`：props `changes`；Monaco Editor 展示变更文件，按 verdict 着色（绿/红/黄/partial）；颜色过滤器（all/green/red/yellow/partial）；展示方法主键（className+signature+route），在 `frontend/src/components/DiffViewer.vue`（依赖 T003 monaco 配置）
+- [x] T009 [US2] `ResultView.vue`：`getResult(id)` 拉取结果 → `DiffViewer` 展示；显示 pass + 三色统计，在 `frontend/src/views/ResultView.vue`（依赖 T004、T008）
 
 **Checkpoint**: US2 可用——Monaco 三色 Diff 可视化
 
@@ -86,7 +86,7 @@ description: "扫描可视化看板（前端可视化落地）的实现任务清
 
 ### Implementation for User Story 3
 
-- [ ] T010 [US3] `ExportButton.vue`：props `result`；点击 → 拼 HTML（统计 + 变更明细 + 三色）→ 触发下载 `report-<taskId>.html`；集成进 `ResultView.vue`，在 `frontend/src/components/ExportButton.vue`、`frontend/src/views/ResultView.vue`（依赖 T009）
+- [x] T010 [US3] `ExportButton.vue`：props `result`；点击 → 拼 HTML（统计 + 变更明细 + 三色）→ 触发下载 `report-<taskId>.html`；集成进 `ResultView.vue`，在 `frontend/src/components/ExportButton.vue`、`frontend/src/views/ResultView.vue`（依赖 T009）
 
 **Checkpoint**: US3 可用——HTML 报告导出
 
@@ -96,8 +96,8 @@ description: "扫描可视化看板（前端可视化落地）的实现任务清
 
 **Purpose**: 生产集成 + 文档 + 验证
 
-- [ ] T011 [P] 生产构建集成：`npm run build` → 将 `frontend/dist` 拷到 `src/main/resources/static`（构建脚本或文档说明，前后端不分离，宪法 4.3），在 `frontend/README.md` 或构建脚本
-- [ ] T012 [P] 对齐主 README：补「前端可视化」章节（dev: `cd frontend && npm run dev`；prod 构建托管），在 `README.md`
+- [x] T011 [P] 生产构建集成：`npm run build` → 将 `frontend/dist` 拷到 `src/main/resources/static`（构建脚本或文档说明，前后端不分离，宪法 4.3），在 `frontend/README.md` 或构建脚本
+- [x] T012 [P] 对齐主 README：补「前端可视化」章节（dev: `cd frontend && npm run dev`；prod 构建托管），在 `README.md`
 - [ ] T013 运行 quickstart 端到端验证（后端 :8080 + 前端 :5173 + 浏览器三场景），对照 `specs/003-scan-dashboard/quickstart.md`
 
 ---

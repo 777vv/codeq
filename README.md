@@ -99,6 +99,22 @@ REST 接口（详见 [specs/002-scan-service/contracts/api.md](specs/002-scan-se
 - `GET /api/scans/{id}` / `/{id}/result` / `/{id}/verdict`
 - `GET /api/scans?repo=&version=` 历史回溯
 
+### 前端可视化（feature 03 / 迭代 #3）
+
+Web 界面（Vue3 + Monaco Editor）位于 `frontend/`，复用上述 REST API（FR-009）。
+
+```bash
+# 开发（前端 :5173，proxy /api → 后端 :8080）
+cd frontend && npm install && npm run dev
+
+# 生产构建（前后端不分离，宪法 4.3）：构建产物拷到后端静态资源
+cd frontend && npm run build
+cp -r dist/* ../src/main/resources/static/
+java -jar target/codeq-0.1.0-SNAPSHOT.jar   # 浏览器访问 http://localhost:8080
+```
+
+详见 [specs/003-scan-dashboard/quickstart.md](specs/003-scan-dashboard/quickstart.md)。
+
 ---
 
 ## 仓库结构
