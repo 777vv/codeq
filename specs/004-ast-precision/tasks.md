@@ -95,7 +95,7 @@ description: "AST 精准匹配优化的实现任务清单"
 
 **Purpose**: 报告展示 + 验证
 
-- [ ] T010 [P] 增强 `report/ReportGenerator.java`：报告展示 `refactorFlag` 标注（重构变更）+ `fingerprint`（追溯），在 `src/main/java/com/codeq/report/ReportGenerator.java`
+- [x] T010 [P] 增强 `report/ReportGenerator.java`：报告展示 `refactorFlag` 标注（重构变更）+ `fingerprint`（追溯），在 `src/main/java/com/codeq/report/ReportGenerator.java`
 - [ ] T011 运行 quickstart 验证（codeq-demo 三场景：变量重命名 US1 / 签名变更 US2 / 路由组合 US3），对照 `specs/004-ast-precision/quickstart.md`
 
 ---

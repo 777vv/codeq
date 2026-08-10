@@ -1,6 +1,7 @@
 package com.codeq.report;
 
 import com.codeq.model.IncrementalChange;
+import com.codeq.model.RefactorFlag;
 import com.codeq.model.Verdict;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ArrayNode;
@@ -36,8 +37,12 @@ public class ReportGenerator {
                     : c.getMethodKey().toString();
             String detail = (c.getVerdict() == Verdict.PARTIAL)
                     ? "  未覆盖行 " + uncovered(c) : "";
-            System.out.printf("%s %s  %s%s%n",
-                    c.getVerdict().icon(), c.getFile(), where, detail);
+            String refactor = c.getRefactorFlag() != RefactorFlag.NONE
+                    ? " [" + c.getRefactorFlag().name() + "]" : "";
+            String fp = c.getFingerprint() != null
+                    ? " fp=" + c.getFingerprint().substring(0, Math.min(8, c.getFingerprint().length())) : "";
+            System.out.printf("%s %s  %s%s%s%s%n",
+                    c.getVerdict().icon(), c.getFile(), where, detail, refactor, fp);
         }
     }
 
@@ -62,6 +67,8 @@ public class ReportGenerator {
                 mk.put("route", c.getMethodKey().route());
             }
             o.put("verdict", c.getVerdict().name());
+            o.put("fingerprint", c.getFingerprint());
+            o.put("refactorFlag", c.getRefactorFlag().name());
             if (c.getVerdict() == Verdict.PARTIAL) {
                 ArrayNode un = o.putArray("uncoveredLines");
                 uncovered(c).forEach(un::add);
@@ -88,6 +95,8 @@ public class ReportGenerator {
             sb.append("<li class='").append(c.getVerdict().name()).append("'>")
               .append(c.getVerdict().icon()).append(' ')
               .append(c.getMethodKey() == null ? "(方法外)" : c.getMethodKey().toString())
+              .append(c.getRefactorFlag() != RefactorFlag.NONE
+                      ? " <b>[" + c.getRefactorFlag().name() + "]</b>" : "")
               .append(" <code>").append(c.getFile()).append("</code></li>");
         }
         sb.append("</ul></body></html>");
