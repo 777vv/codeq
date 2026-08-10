@@ -3,12 +3,14 @@ package com.codeq.verdict;
 import com.codeq.match.AstMatcher;
 import com.codeq.model.IncrementalChange;
 import com.codeq.model.MethodKey;
+import com.codeq.model.MethodMatch;
 import com.codeq.model.Verdict;
 import org.springframework.stereotype.Component;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,9 +20,9 @@ import java.util.stream.Collectors;
 
 /**
  * 三色判定引擎（spec FR-003 / FR-013 / 宪法第五篇）。
- * <p>结合 AstMatcher 的行→方法归约 + diff-cover 的行级执行结果，产出每个变更方法（或方法外变更）的判定：
- * 全执行→GREEN，从未执行→RED，部分执行→PARTIAL（附未覆盖行明细），无法归约→YELLOW。
- * <p>输出做确定性排序（spec FR-010 / US3 T020）：相同输入→相同输出，无随机、无时钟依赖。
+ * feature 04 适配：消费 {@link MethodMatch}（含方法指纹，填入 IncrementalChange.fingerprint）。
+ * 输出确定性排序（spec FR-010 / US3 T020）：相同输入→相同输出，无随机、无时钟依赖。
+ *
  * @author wangtao
  * @date 2026-08-06
  */
@@ -42,16 +44,20 @@ public class VerdictEngine {
             String file = entry.getKey();
             Set<Integer> changed = entry.getValue();
             Set<Integer> covered = coveredByFile.getOrDefault(file, new TreeSet<>());
-            Map<Integer, MethodKey> lineToMethod = astMatcher.mapLinesToMethods(repo, file, changed);
+            Map<Integer, MethodMatch> lineToMethod = astMatcher.mapLinesToMethods(repo, file, changed);
+
+            // methodKey → fingerprint（feature 04 US1）
+            Map<MethodKey, String> fingerprintByKey = new HashMap<>();
+            lineToMethod.values().forEach(mm -> fingerprintByKey.put(mm.key(), mm.fingerprint()));
 
             Map<MethodKey, List<Integer>> byMethod = new LinkedHashMap<>();
             List<Integer> unmapped = new ArrayList<>();
             for (Integer ln : changed) {
-                MethodKey mk = lineToMethod.get(ln);
-                if (mk == null) {
+                MethodMatch mm = lineToMethod.get(ln);
+                if (mm == null) {
                     unmapped.add(ln);
                 } else {
-                    byMethod.computeIfAbsent(mk, k -> new ArrayList<>()).add(ln);
+                    byMethod.computeIfAbsent(mm.key(), k -> new ArrayList<>()).add(ln);
                 }
             }
 
@@ -59,6 +65,7 @@ public class VerdictEngine {
                 IncrementalChange c = new IncrementalChange();
                 c.setFile(file);
                 c.setMethodKey(mk);
+                c.setFingerprint(fingerprintByKey.get(mk));
                 c.setChangedLines(lines);
                 c.setExecutedLines(executedOf(lines, covered));
                 c.setVerdict(verdictOf(c.getChangedLines(), c.getExecutedLines()));
